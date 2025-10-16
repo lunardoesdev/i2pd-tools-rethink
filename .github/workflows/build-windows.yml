@@ -97,7 +97,6 @@ jobs:
 
     - name: Build application
       run: |
-        cd build
         cmake -DWITH_GIT_VERSION=ON -DWITH_STATIC=ON -DWITH_UPNP=ON -DCMAKE_BUILD_TYPE=Release .
         cmake --build . -- -j3
 
@@ -105,7 +104,22 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: i2pd-cmake-${{ matrix.arch_short }}.exe
-        path: build/i2pd.exe
+        path: |
+          ./i2pd.exe
+          ./vain.exe
+          ./keygen.exe
+          ./keyinfo.exe
+          ./famtool.exe
+          ./routerinfo.exe
+          ./regaddr.exe
+          ./regaddr_3ld.exe
+          ./i2pbase64.exe
+          ./offlinekeys.exe
+          ./b33address.exe
+          ./regaddralias.exe
+          ./x25519.exe
+          ./verifyhost.exe
+          ./autoconf.exe
 
   build-xp:
     name: XP
