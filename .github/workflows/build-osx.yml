@@ -4,15 +4,6 @@ on:
   push:
     branches:
       - '*'
-    paths:
-      - .github/workflows/build-osx.yml
-      - build/CMakeLists.txt
-      - build/cmake_modules/**
-      - daemon/**
-      - i18n/**
-      - libi2pd/**
-      - libi2pd_client/**
-      - CMakeLists.txt
     tags:
       - '*'
   pull_request:
