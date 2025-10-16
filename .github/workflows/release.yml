@@ -2,7 +2,7 @@ name: Continuous Release
 
 on:
   workflow_run:
-    workflows: ["Build on Ubuntu", "Build on macOS", "Build on FreeBSD", "Build on Windows"]
+    workflows: ["Build on Ubuntu", "Build on macOS", "Build on macOS Legacy", "Build on FreeBSD", "Build on Windows", "Build on Windows ARM"]
     types:
       - completed
   # Allow manual triggering
@@ -70,28 +70,50 @@ jobs:
 
       - name: Organize macOS artifacts
         run: |
-          # Find and copy macOS artifacts
+          # Find and copy macOS (ARM) artifacts
           if [ -d "artifacts/i2pd-macos" ]; then
-            cp -r "artifacts/i2pd-macos" "releases/macos/macos"
-            echo "Copied macOS artifact: macos"
+            cp -r "artifacts/i2pd-macos" "releases/macos/macos-arm" 
+            echo "Copied macOS ARM artifact"
             
-            # Create compressed archive for macOS build
-            tar -czf "i2pd-macos-macos.tar.gz" -C releases/macos/macos .
-            echo "Created macOS archive: i2pd-macos-macos.tar.gz"
+            # Create compressed archive for macOS ARM build
+            tar -czf "i2pd-macos-arm.tar.gz" -C releases/macos/macos-arm .
+            echo "Created macOS ARM archive: i2pd-macos-arm.tar.gz"
+          fi
+          
+          # Find and copy macOS (Legacy/Intel) artifacts
+          if [ -d "artifacts/i2pd-macos-legacy" ]; then
+            cp -r "artifacts/i2pd-macos-legacy" "releases/macos/macos-legacy"
+            echo "Copied macOS Legacy artifact"
+            
+            # Create compressed archive for macOS Legacy build
+            tar -czf "i2pd-macos-legacy.tar.gz" -C releases/macos/macos-legacy .
+            echo "Created macOS Legacy archive: i2pd-macos-legacy.tar.gz"
           fi
 
       - name: Organize Windows artifacts
         run: |
-          # Find and copy Windows UCRT artifact
+          # Find and copy Windows UCRT (x64) artifact
           if [ -d "artifacts/i2pd-windows-ucrt" ]; then
             cp -r "artifacts/i2pd-windows-ucrt" "releases/windows/ucrt" 
-            echo "Copied Windows UCRT artifact"
+            echo "Copied Windows UCRT (x64) artifact"
             
-            # Create ZIP archive for Windows build
+            # Create ZIP archive for Windows UCRT build
             cd "releases/windows/ucrt"
             zip -r "../../i2pd-windows-ucrt.zip" *.exe
             cd ../../..
-            echo "Created Windows archive: i2pd-windows-ucrt.zip"
+            echo "Created Windows UCRT archive: i2pd-windows-ucrt.zip"
+          fi
+          
+          # Find and copy Windows ARM64 artifact
+          if [ -d "artifacts/i2pd-windows-arm64" ]; then
+            cp -r "artifacts/i2pd-windows-arm64" "releases/windows/arm64"
+            echo "Copied Windows ARM64 artifact"
+            
+            # Create ZIP archive for Windows ARM64 build
+            cd "releases/windows/arm64"
+            zip -r "../../i2pd-windows-arm64.zip" *.exe
+            cd ../../..
+            echo "Created Windows ARM64 archive: i2pd-windows-arm64.zip"
           fi
 
       - name: Prepare release assets
@@ -114,9 +136,11 @@ jobs:
             
             This release contains build artifacts for multiple platforms:
             - Linux (with UPnP ON)
-            - FreeBSD
-            - macOS (with UPnP ON)
+            - FreeBSD (with UPnP ON)
+            - macOS (ARM with UPnP ON)
+            - macOS (Legacy/Intel with UPnP ON)
             - Windows (UCRT x64 variant)
+            - Windows (ARM64 variant)
             
             Artifacts include the main executable and all associated utilities.
           draft: false
