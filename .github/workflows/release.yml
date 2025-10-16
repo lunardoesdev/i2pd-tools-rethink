@@ -1,15 +1,12 @@
 name: Continuous Release
 
 on:
-  push:
-    branches:
-      - '*'
-    tags:
-      - 'v*'
   workflow_run:
     workflows: ["Build on Ubuntu", "Build on macOS", "Build on FreeBSD", "Build on Windows"]
     types:
       - completed
+  # Allow manual triggering
+  workflow_dispatch:
 
 jobs:
   release:
@@ -17,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    if: ${{ github.event_name == 'workflow_run' || (github.event_name == 'push' && (github.ref_type == 'tag' || github.ref_type == 'branch')) }}
+    # Only run when triggered by workflow_run or manually
+    if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' }}
     
     steps:
       - name: Checkout repository
@@ -33,10 +31,14 @@ jobs:
       - name: List downloaded artifacts
         run: |
           echo "Downloaded artifacts:"
-          find artifacts -type f
-          echo ""
-          echo "Artifact directories:"
-          ls -la artifacts/
+          if [ -d "artifacts" ]; then
+            find artifacts -type f
+            echo ""
+            echo "Artifact directories:"
+            ls -la artifacts/
+          else
+            echo "No artifacts directory found"
+          fi
 
       - name: Create release directory structure
         run: |
@@ -45,22 +47,24 @@ jobs:
       - name: Organize Linux artifacts
         run: |
           # Find and copy Linux artifacts (Ubuntu/CMake builds)
-          for dir in artifacts/i2pd-ubuntu-*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              cp -r "$dir" "releases/linux/${name}" 
-              echo "Copied Linux artifact: $name"
-            fi
-          done
-          
-          # Create compressed archives for each Linux build
-          for dir in releases/linux/*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              tar -czf "i2pd-linux-$name.tar.gz" -C releases/linux "$name"
-              echo "Created Linux archive: i2pd-linux-$name.tar.gz"
-            fi
-          done
+          if [ -d "artifacts" ]; then
+            for dir in artifacts/i2pd-ubuntu-*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                cp -r "$dir" "releases/linux/${name}" 
+                echo "Copied Linux artifact: $name"
+              fi
+            done
+            
+            # Create compressed archives for each Linux build
+            for dir in releases/linux/*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                tar -czf "i2pd-linux-$name.tar.gz" -C releases/linux "$name"
+                echo "Created Linux archive: i2pd-linux-$name.tar.gz"
+              fi
+            done
+          fi
 
       - name: Organize FreeBSD artifacts
         run: |
@@ -77,59 +81,65 @@ jobs:
       - name: Organize macOS artifacts
         run: |
           # Find and copy macOS artifacts
-          for dir in artifacts/i2pd-macos-*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              cp -r "$dir" "releases/macos/${name}"
-              echo "Copied macOS artifact: $name"
-            fi
-          done
-          
-          # Create compressed archives for each macOS build
-          for dir in releases/macos/*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              tar -czf "i2pd-macos-$name.tar.gz" -C releases/macos "$name"
-              echo "Created macOS archive: i2pd-macos-$name.tar.gz"
-            fi
-          done
+          if [ -d "artifacts" ]; then
+            for dir in artifacts/i2pd-macos-*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                cp -r "$dir" "releases/macos/${name}"
+                echo "Copied macOS artifact: $name"
+              fi
+            done
+            
+            # Create compressed archives for each macOS build
+            for dir in releases/macos/*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                tar -czf "i2pd-macos-$name.tar.gz" -C releases/macos "$name"
+                echo "Created macOS archive: i2pd-macos-$name.tar.gz"
+              fi
+            done
+          fi
 
       - name: Organize Windows artifacts
         run: |
           # Find and copy Windows artifacts by architecture
-          for dir in artifacts/i2pd-windows-*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              cp -r "$dir" "releases/windows/${name}"
-              echo "Copied Windows artifact: $name"
-            fi
-          done
-          
-          # Create ZIP archives for each Windows build
-          for dir in releases/windows/*; do
-            if [ -d "$dir" ]; then
-              name=$(basename "$dir")
-              cd "$dir"
-              zip -r "../i2pd-windows-$name.zip" *.exe
-              cd ../..
-              echo "Created Windows archive: i2pd-windows-$name.zip"
-            fi
-          done
+          if [ -d "artifacts" ]; then
+            for dir in artifacts/i2pd-windows-*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                cp -r "$dir" "releases/windows/${name}"
+                echo "Copied Windows artifact: $name"
+              fi
+            done
+            
+            # Create ZIP archives for each Windows build
+            for dir in releases/windows/*; do
+              if [ -d "$dir" ]; then
+                name=$(basename "$dir")
+                cd "$dir"
+                zip -r "../i2pd-windows-$name.zip" *.exe
+                cd ../..
+                echo "Created Windows archive: i2pd-windows-$name.zip"
+              fi
+            done
+          fi
 
       - name: Prepare release assets
         run: |
           echo "Listing all release assets:"
-          ls -la *.tar.gz *.zip 2>/dev/null || echo "No tar.gz or zip files found"
+          ls -la *.tar.gz *.zip 2>/dev/null || echo "No release assets found"
           
       - name: Create or Update Release
         id: create_release
         uses: softprops/action-gh-release@v2
+        if: ${{ contains(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
         with:
-          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || (github.event_name == 'workflow_run' && format('continuous-{0}', github.sha)) || format('continuous-{0}', github.sha) }}
-          name: ${{ github.ref_type == 'tag' && format('Release {0}', github.ref_name) || 'Continuous Release' }}
+          tag_name: ${{ github.ref_name || format('continuous-{0}', github.run_id) }}
+          name: ${{ github.ref_name || format('Continuous Release {0}', github.run_id) }}
           body: |
             Continuous Release Build
             
+            Workflow Run: ${{ github.run_id }}
             Commit: ${{ github.sha }}
             
             This release contains build artifacts for multiple platforms:
@@ -140,7 +150,7 @@ jobs:
             
             Artifacts include the main executable and all associated utilities.
           draft: false
-          prerelease: ${{ github.ref_type != 'tag' }}
+          prerelease: true
           files: |
             *.tar.gz
             *.zip
