@@ -1,45 +1,51 @@
-name: Build on OSX
+name: Build on macOS
 
 on:
   push:
     branches:
-    - '*'
+      - '*'
     paths:
-    - .github/workflows/build-osx.yml
-    - daemon/**
-    - i18n/**
-    - libi2pd/**
-    - libi2pd_client/**
-    - Makefile
-    - Makefile.homebrew
+      - .github/workflows/build-osx.yml
+      - build/CMakeLists.txt
+      - build/cmake_modules/**
+      - daemon/**
+      - i18n/**
+      - libi2pd/**
+      - libi2pd_client/**
+      - CMakeLists.txt
     tags:
-    - '*'
+      - '*'
   pull_request:
     branches:
-    - '*'
+      - '*'
 
 jobs:
-  build:
-    name: With USE_UPNP=${{ matrix.with_upnp }}
+  build-cmake:
+    name: CMake with -DWITH_UPNP=${{ matrix.with_upnp }}
     runs-on: macOS-latest
 
     strategy:
       fail-fast: true
       matrix:
-        with_upnp: ['yes', 'no']
+        with_upnp: ['ON', 'OFF']
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        submodules: true
 
-    - name: Install required formulae
+    - name: Install dependencies
       run: |
-        find /usr/local/bin -lname '*/Library/Frameworks/Python.framework/*' -delete
         brew update
         brew install boost miniupnpc openssl@1.1
 
-    - name: List installed formulae
-      run: brew list
-
-    - name: Build application
-      run: make HOMEBREW=1 USE_UPNP=${{ matrix.with_upnp }} PREFIX=$GITHUB_WORKSPACE/output -j3
+    - name: Configure and build with CMake
+      run: |
+        mkdir build
+        cd build
+        cmake \
+          -DWITH_UPNP=${{ matrix.with_upnp }} \
+          -DOPENSSL_ROOT_DIR=$(brew --prefix openssl@1.1) \
+          ..
+        cmake --build . --parallel 3
