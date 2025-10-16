@@ -13,13 +13,8 @@ on:
 
 jobs:
   build-cmake:
-    name: CMake with -DWITH_UPNP=${{ matrix.with_upnp }}
+    name: CMake with -DWITH_UPNP=ON
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: true
-      matrix:
-        with_upnp: ['ON', 'OFF']
 
     steps:
     - name: Checkout
@@ -36,13 +31,13 @@ jobs:
       run: |
         mkdir build
         cd build
-        cmake -DWITH_UPNP=${{ matrix.with_upnp }} ..
+        cmake -DWITH_UPNP=ON ..
         make -j3
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: i2pd-ubuntu-${{ matrix.with_upnp }}
+        name: i2pd-ubuntu
         path: |
           build/i2pd
           build/vain

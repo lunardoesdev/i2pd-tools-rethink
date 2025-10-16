@@ -47,23 +47,13 @@ jobs:
       - name: Organize Linux artifacts
         run: |
           # Find and copy Linux artifacts (Ubuntu/CMake builds)
-          if [ -d "artifacts" ]; then
-            for dir in artifacts/i2pd-ubuntu-*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                cp -r "$dir" "releases/linux/${name}" 
-                echo "Copied Linux artifact: $name"
-              fi
-            done
+          if [ -d "artifacts/i2pd-ubuntu" ]; then
+            cp -r "artifacts/i2pd-ubuntu" "releases/linux/ubuntu" 
+            echo "Copied Linux artifact: ubuntu"
             
-            # Create compressed archives for each Linux build
-            for dir in releases/linux/*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                tar -czf "i2pd-linux-$name.tar.gz" -C releases/linux "$name"
-                echo "Created Linux archive: i2pd-linux-$name.tar.gz"
-              fi
-            done
+            # Create compressed archive for Linux build
+            tar -czf "i2pd-linux-ubuntu.tar.gz" -C releases/linux/ubuntu .
+            echo "Created Linux archive: i2pd-linux-ubuntu.tar.gz"
           fi
 
       - name: Organize FreeBSD artifacts
@@ -81,23 +71,13 @@ jobs:
       - name: Organize macOS artifacts
         run: |
           # Find and copy macOS artifacts
-          if [ -d "artifacts" ]; then
-            for dir in artifacts/i2pd-macos-*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                cp -r "$dir" "releases/macos/${name}"
-                echo "Copied macOS artifact: $name"
-              fi
-            done
+          if [ -d "artifacts/i2pd-macos" ]; then
+            cp -r "artifacts/i2pd-macos" "releases/macos/macos"
+            echo "Copied macOS artifact: macos"
             
-            # Create compressed archives for each macOS build
-            for dir in releases/macos/*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                tar -czf "i2pd-macos-$name.tar.gz" -C releases/macos "$name"
-                echo "Created macOS archive: i2pd-macos-$name.tar.gz"
-              fi
-            done
+            # Create compressed archive for macOS build
+            tar -czf "i2pd-macos-macos.tar.gz" -C releases/macos/macos .
+            echo "Created macOS archive: i2pd-macos-macos.tar.gz"
           fi
 
       - name: Organize Windows artifacts
@@ -143,9 +123,9 @@ jobs:
             Commit: ${{ github.sha }}
             
             This release contains build artifacts for multiple platforms:
-            - Linux (with UPnP ON/OFF configurations)
+            - Linux (with UPnP ON)
             - FreeBSD
-            - macOS (with UPnP ON/OFF configurations)
+            - macOS (with UPnP ON)
             - Windows (multiple architectures: x64-ucrt, x64-clang, x64, x86)
             
             Artifacts include the main executable and all associated utilities.
