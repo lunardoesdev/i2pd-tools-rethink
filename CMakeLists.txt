@@ -33,7 +33,7 @@ project(
 option(WITH_HARDENING       "Use hardening compiler flags"            OFF)
 option(WITH_LIBRARY         "Build library"                           ON)
 option(WITH_BINARY          "Build binary"                            ON)
-option(WITH_STATIC          "Static build"                            ON)
+option(WITH_STATIC          "Static build"                            OFF)
 option(WITH_UPNP            "Include support for UPnP client"         OFF)
 option(WITH_GIT_VERSION     "Use git commit info as version"          OFF)
 option(WITH_ADDRSANITIZER   "Build with address sanitizer unix only"  OFF)
