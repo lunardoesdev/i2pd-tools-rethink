@@ -396,9 +396,14 @@ jobs:
             
             # Create ZIP archive for Windows UCRT build
             cd "releases/windows/ucrt"
-            zip -r "../../i2pd-windows-ucrt.zip" *.exe
+            if ls *.exe >/dev/null 2>&1; then
+              zip -r "../../i2pd-windows-ucrt.zip" *.exe
+              echo "Created Windows UCRT archive: i2pd-windows-ucrt.zip"
+            else
+              echo "No .exe files found in Windows UCRT artifact"
+              find . -type f
+            fi
             cd ../../..
-            echo "Created Windows UCRT archive: i2pd-windows-ucrt.zip"
           else
             echo "No Windows UCRT artifacts found"
           fi
@@ -410,9 +415,14 @@ jobs:
             
             # Create ZIP archive for Windows ARM64 build
             cd "releases/windows/arm64"
-            zip -r "../../i2pd-windows-arm64.zip" *.exe
+            if ls *.exe >/dev/null 2>&1; then
+              zip -r "../../i2pd-windows-arm64.zip" *.exe
+              echo "Created Windows ARM64 archive: i2pd-windows-arm64.zip"
+            else
+              echo "No .exe files found in Windows ARM64 artifact"
+              find . -type f
+            fi
             cd ../../..
-            echo "Created Windows ARM64 archive: i2pd-windows-arm64.zip"
           else
             echo "No Windows ARM64 artifacts found"
           fi
