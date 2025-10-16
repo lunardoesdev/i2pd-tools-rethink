@@ -180,7 +180,7 @@ jobs:
           mkdir build
           cd build
           cmake -DWITH_UPNP=ON -DCMAKE_BUILD_TYPE=Release ..
-          gmake -j8
+          gmake -j2
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -391,38 +391,42 @@ jobs:
         run: |
           # Find and copy Windows UCRT (x64) artifact
           if [ -d "artifacts/i2pd-windows-ucrt" ]; then
-            cp -r "artifacts/i2pd-windows-ucrt" "releases/windows/ucrt" 
-            echo "Copied Windows UCRT (x64) artifact"
+            echo "Processing Windows UCRT (x64) artifact"
+            # Create releases/windows/ucrt directory and copy .exe files directly to it
+            mkdir -p "releases/windows/ucrt"
+            cp "artifacts/i2pd-windows-ucrt"/*.exe "releases/windows/ucrt/" 2>/dev/null || echo "No .exe files in Windows UCRT artifact or copying failed"
             
             # Create ZIP archive for Windows UCRT build
-            cd "releases/windows/ucrt"
-            if ls *.exe >/dev/null 2>&1; then
-              zip -r "../../i2pd-windows-ucrt.zip" *.exe
+            if ls "releases/windows/ucrt"/*.exe >/dev/null 2>&1; then
+              cd "releases/windows/ucrt"
+              zip -r "../../../i2pd-windows-ucrt.zip" *.exe
+              cd ../../..
               echo "Created Windows UCRT archive: i2pd-windows-ucrt.zip"
             else
-              echo "No .exe files found in Windows UCRT artifact"
-              find . -type f
+              echo "No .exe files found in Windows UCRT release directory"
+              ls -la "releases/windows/ucrt/" 2>/dev/null || echo "Windows UCRT release directory doesn't exist"
             fi
-            cd ../../..
           else
             echo "No Windows UCRT artifacts found"
           fi
           
           # Find and copy Windows ARM64 artifact
           if [ -d "artifacts/i2pd-windows-arm64" ]; then
-            cp -r "artifacts/i2pd-windows-arm64" "releases/windows/arm64"
-            echo "Copied Windows ARM64 artifact"
+            echo "Processing Windows ARM64 artifact"
+            # Create releases/windows/arm64 directory and copy .exe files directly to it
+            mkdir -p "releases/windows/arm64"
+            cp "artifacts/i2pd-windows-arm64"/*.exe "releases/windows/arm64/" 2>/dev/null || echo "No .exe files in Windows ARM64 artifact or copying failed"
             
             # Create ZIP archive for Windows ARM64 build
-            cd "releases/windows/arm64"
-            if ls *.exe >/dev/null 2>&1; then
-              zip -r "../../i2pd-windows-arm64.zip" *.exe
+            if ls "releases/windows/arm64"/*.exe >/dev/null 2>&1; then
+              cd "releases/windows/arm64"
+              zip -r "../../../i2pd-windows-arm64.zip" *.exe
+              cd ../../..
               echo "Created Windows ARM64 archive: i2pd-windows-arm64.zip"
             else
-              echo "No .exe files found in Windows ARM64 artifact"
-              find . -type f
+              echo "No .exe files found in Windows ARM64 release directory"
+              ls -la "releases/windows/arm64/" 2>/dev/null || echo "Windows ARM64 release directory doesn't exist"
             fi
-            cd ../../..
           else
             echo "No Windows ARM64 artifacts found"
           fi
