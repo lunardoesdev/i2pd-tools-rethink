@@ -5,8 +5,11 @@ on:
     workflows: ["Build on Ubuntu", "Build on macOS", "Build on FreeBSD", "Build on Windows"]
     types:
       - completed
-  # Allow manual triggering
+  # Allow manual triggering and also run on every push to any branch
   workflow_dispatch:
+  push:
+    branches:
+      - '**'
 
 jobs:
   release:
@@ -14,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    # Only run when triggered by workflow_run or manually
-    if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' }}
+    # Run when triggered by workflow_run, manually, or on any push
+    if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'branch') }}
     
     steps:
       - name: Checkout repository
@@ -82,26 +85,16 @@ jobs:
 
       - name: Organize Windows artifacts
         run: |
-          # Find and copy Windows artifacts by architecture
-          if [ -d "artifacts" ]; then
-            for dir in artifacts/i2pd-windows-*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                cp -r "$dir" "releases/windows/${name}"
-                echo "Copied Windows artifact: $name"
-              fi
-            done
+          # Find and copy Windows UCRT artifact
+          if [ -d "artifacts/i2pd-windows-ucrt" ]; then
+            cp -r "artifacts/i2pd-windows-ucrt" "releases/windows/ucrt" 
+            echo "Copied Windows UCRT artifact"
             
-            # Create ZIP archives for each Windows build
-            for dir in releases/windows/*; do
-              if [ -d "$dir" ]; then
-                name=$(basename "$dir")
-                cd "$dir"
-                zip -r "../i2pd-windows-$name.zip" *.exe
-                cd ../..
-                echo "Created Windows archive: i2pd-windows-$name.zip"
-              fi
-            done
+            # Create ZIP archive for Windows build
+            cd "releases/windows/ucrt"
+            zip -r "../../i2pd-windows-ucrt.zip" *.exe
+            cd ../../..
+            echo "Created Windows archive: i2pd-windows-ucrt.zip"
           fi
 
       - name: Prepare release assets
@@ -112,10 +105,10 @@ jobs:
       - name: Create or Update Release
         id: create_release
         uses: softprops/action-gh-release@v2
-        if: ${{ contains(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch' }}
+        if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'branch') }}
         with:
-          tag_name: ${{ github.ref_name || format('continuous-{0}', github.run_id) }}
-          name: ${{ github.ref_name || format('Continuous Release {0}', github.run_id) }}
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('continuous-{0}', github.sha) }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || format('Continuous Release {0}', github.sha) }}
           body: |
             Continuous Release Build
             
@@ -126,7 +119,7 @@ jobs:
             - Linux (with UPnP ON)
             - FreeBSD
             - macOS (with UPnP ON)
-            - Windows (multiple architectures: x64-ucrt, x64-clang, x64, x86)
+            - Windows (UCRT x64 variant)
             
             Artifacts include the main executable and all associated utilities.
           draft: false
