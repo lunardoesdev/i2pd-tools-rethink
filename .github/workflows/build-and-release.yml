@@ -253,7 +253,7 @@ jobs:
 
   build-windows-arm:
     name: Build Windows ARM64
-    runs-on: windows-latest
+    runs-on: windows-11-arm
 
     defaults:
       run:
