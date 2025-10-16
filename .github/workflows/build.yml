@@ -48,3 +48,24 @@ jobs:
         cd build
         cmake -DWITH_UPNP=${{ matrix.with_upnp }} ..
         make -j3
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: i2pd-ubuntu-${{ matrix.with_upnp }}
+        path: |
+          build/i2pd
+          build/vain
+          build/keygen
+          build/keyinfo
+          build/famtool
+          build/routerinfo
+          build/regaddr
+          build/regaddr_3ld
+          build/i2pbase64
+          build/offlinekeys
+          build/b33address
+          build/regaddralias
+          build/x25519
+          build/verifyhost
+          build/autoconf

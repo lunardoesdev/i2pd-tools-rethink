@@ -63,7 +63,7 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: i2pd-cmake-${{ matrix.arch_short }}.exe
+        name: i2pd-windows-${{ matrix.arch_short }}
         path: |
           ./i2pd.exe
           ./vain.exe
