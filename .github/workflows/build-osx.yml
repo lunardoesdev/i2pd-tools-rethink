@@ -39,7 +39,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install boost miniupnpc openssl@1.1
+        brew install boost miniupnpc openssl@1.1 zlib
 
     - name: Configure and build with CMake
       run: |
