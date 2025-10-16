@@ -180,7 +180,7 @@ jobs:
           mkdir build
           cd build
           cmake -DWITH_UPNP=ON -DCMAKE_BUILD_TYPE=Release ..
-          gmake -j2
+          gmake -j8
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
