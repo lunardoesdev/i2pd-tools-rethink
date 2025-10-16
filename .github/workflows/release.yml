@@ -5,11 +5,8 @@ on:
     workflows: ["Build on Ubuntu", "Build on macOS", "Build on FreeBSD", "Build on Windows"]
     types:
       - completed
-  # Allow manual triggering and also run on every push to any branch
+  # Allow manual triggering
   workflow_dispatch:
-  push:
-    branches:
-      - '**'
 
 jobs:
   release:
@@ -17,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    # Run when triggered by workflow_run, manually, or on any push
-    if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref_type == 'branch') }}
+    # Run when triggered by workflow_run or manually
+    if: ${{ github.event_name == 'workflow_run' || github.event_name == 'workflow_dispatch' }}
     
     steps:
       - name: Checkout repository
