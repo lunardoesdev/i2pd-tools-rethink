@@ -43,5 +43,7 @@ jobs:
 
     - name: build application
       run: |
-        cmake -DWITH_UPNP=${{ matrix.with_upnp }} .
+        mkdir build
+        cd build
+        cmake -DWITH_UPNP=${{ matrix.with_upnp }} ..
         make -j3
